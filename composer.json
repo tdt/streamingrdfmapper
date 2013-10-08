@@ -1,0 +1,20 @@
+{
+    "name": "tdt/streamingrdfmapper",
+    "description": "A streaming mapper. Takes a chunk of data and a mapping file, returns RDF triples.",
+    "keywords": ["mapper", "rdf", "ontologies", "vocabularies", "turtle", "owl"],
+    "homepage": "http://thedatatank.com",
+    "type": "library",
+    "license": "AGPLv3",
+    "suggest": {
+    },
+    "require": {
+	"semsol/arc2" : ">=2.2.3"
+    },
+    "minimum-stability" : "dev",
+    "autoload": {
+        "psr-0": {
+            "tdt\\streamingrdfmapper\\": "src/"
+        }
+    }
+}
+
