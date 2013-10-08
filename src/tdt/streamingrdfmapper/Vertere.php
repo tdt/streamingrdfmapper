@@ -1,9 +1,13 @@
 <?php
+/**
+ * The Vertere mapping language parser
+ *
+ * @author until 2012: Rob Styles
+ * @author starting 2012: Miel Vander Sande
+ * @author starting 2013: Pieter Colpaert
+ */
 
-include_once MORIARTY_DIR . 'moriarty.inc.php';
-include_once MORIARTY_DIR . 'simplegraph.class.php';
-include_once VERTERE_DIR . 'custom/conversions.class.php';
-include_once 'UriTemplate/UriTemplate.php';
+namespace tdt\streamingrdfmapper;
 
 class Vertere {
 
@@ -418,11 +422,11 @@ class Vertere {
                         $value = str_replace("+", "%20", $value);
                         break;
 
-                    /**
-                     * create_url wil check whether the argument is not a url yet. 
-                     * If it is, it will keep the url as is. 
-                     * If it isn't, it will prepend the begining of the url, and it will url encode the value
-                     */
+                        /**
+                         * create_url wil check whether the argument is not a url yet. 
+                         * If it is, it will keep the url as is. 
+                         * If it isn't, it will prepend the begining of the url, and it will url encode the value
+                         */
                     case 'create_url':
                         $regex_output = $this->spec->get_first_literal($resource, NS_CONV . 'url');
                         $regex_pattern = "/^(?!http.+)/";
@@ -478,8 +482,8 @@ class Vertere {
         if ($this->spec->get_subject_property_values($lookup, NS_CONV . 'lookup_entry')) {
             return $this->lookup_config_entries($record, $lookup, $key);
         } else if ($this->spec->get_subject_property_values($lookup, NS_CONV . 'lookup_csv_file')) {
-                return $this->lookup_csv_file($lookup, $key);
-            }
+            return $this->lookup_csv_file($lookup, $key);
+        }
     }
 
     function lookup_config_entries($record, $lookup, $key) {
@@ -502,13 +506,13 @@ class Vertere {
                         throw new Exception("Lookup ${lookup} has an entry ${entry['value']} that does not have exactly one lookup value assigned.");
                     }
                     if ($lookup_column){
-                            $this->lookups[$lookup][$lookup_key]['value'] = $lookup_column[0]['value'];
-                            $this->lookups[$lookup][$lookup_key]['type'] = true;
+                        $this->lookups[$lookup][$lookup_key]['value'] = $lookup_column[0]['value'];
+                        $this->lookups[$lookup][$lookup_key]['type'] = true;
                     }
                     elseif ($lookup_values[0]){
                         $this->lookups[$lookup][$lookup_key]['value'] = $lookup_values[0];
                         $this->lookups[$lookup][$lookup_key]['type'] = false;
-                        }
+                    }
                 } 
             }
         }        

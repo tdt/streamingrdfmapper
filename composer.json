@@ -8,7 +8,8 @@
     "suggest": {
     },
     "require": {
-	"semsol/arc2" : ">=2.2.3"
+	"semsol/arc2" : ">=2.2.3",
+	"guzzle/guzzle": "~3.7"
     },
     "minimum-stability" : "dev",
     "autoload": {

@@ -1,4 +1,13 @@
 <?php
+/**
+ * The Sequence Graph is an extention of the graph as used by Moriarty
+ *
+ * @author until 2012: Rob Styles
+ * @author starting 2012: Miel Vander Sande
+ * @author starting 2013: Pieter Colpaert
+ */
+
+namespace tdt\streamingrdfmapper;
 
 class SequenceGraph extends SimpleGraph {
 

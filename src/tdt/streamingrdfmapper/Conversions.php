@@ -1,4 +1,14 @@
 <?php
+/**
+ * Conversions
+ *
+ * @author until 2012: Rob Styles
+ * @author starting 2012: Miel Vander Sande
+ * @author starting 2013: Pieter Colpaert
+ */
+
+namespace tdt\streamingrdfmapper;
+
 /*
  * Class for custom conversion methods
  */
