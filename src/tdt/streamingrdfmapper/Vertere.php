@@ -7,6 +7,10 @@
  * @author starting 2013: Pieter Colpaert
  */
 
+/*
+ * TODO: replace NS_CONV, put the right things in StreamingRDFMapper class instead, etc.
+ */
+
 namespace tdt\streamingrdfmapper;
 
 class Vertere {

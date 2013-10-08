@@ -36,6 +36,6 @@ $typeofmapping = "Vertere"; //other options: "RML", "OneonOne"
 
 $mapper = new StreamingRDFMapper($mapping, $typeofmapping);
 $data = foo\bar\getNextDataChunk(); //get data from somewhere: can be a csv file you've extracted, some data you've scraped or XML or JSON file you've flattened and put into an array
-$triples = $mapper->($data);
+$triples = $mapper->map($data);
 ```
 

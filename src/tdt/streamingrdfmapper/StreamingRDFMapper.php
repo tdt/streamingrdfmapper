@@ -30,6 +30,7 @@ class StreamingRDFMapper{
      * @param chunk an array
      */
     public function map($chunk){
+        //todo
         return array("subject" => "<>" , "predicate" => "<>" , "object" => "<>" );
     }
 

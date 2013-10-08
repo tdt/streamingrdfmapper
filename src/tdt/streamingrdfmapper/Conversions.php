@@ -16,13 +16,13 @@ class Conversions {
     /*
      * Converts a value from feet to metres
      */
-	public static function feet_to_metres($value) {
-		return ($value * 0.3048);
-	}
+    public static function feet_to_metres($value) {
+        return ($value * 0.3048);
+    }
 
-	public static function metres_to_feet($value) {
-		return ($value * 3.2808);
-	}
+    public static function metres_to_feet($value) {
+        return ($value * 3.2808);
+    }
     
     public static function to_xsd_date($value) {
         $months = array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
@@ -75,6 +75,6 @@ class Conversions {
      * Example pass-through function
      */
     public static function mirror($value) {
-		return $value;
-	}
+        return $value;
+    }
 }
