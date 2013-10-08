@@ -12,9 +12,13 @@ You can find more documentation about Vertere in the [VERTERE.md](VERTERE.md) fi
 
 See the publication of Anastasia Dimou, Miel Vander Sande, Pieter Colpaert on RML at ISWC 2013
 
+You can find more documentation about Vertere in the [RML.md](RML.md) file.
+
 ## One on One
 
 Map a column to properties: this is a very easy mapping language which doesn't offer a lot of flexibility
+
+You can find more documentation about Vertere in the [ONEONONE.md](ONEONONE.md) file.
 
 # Usage
 
