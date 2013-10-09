@@ -8,47 +8,62 @@
  */
 
 /*
- * TODO: replace NS_CONV, put the right things in StreamingRDFMapper class instead, etc.
+ * TODO: 
+ *    - replace NS_CONV, put the right things in StreamingRDFMapper class instead, extend from AMapper etc.
+ *    - Be sure there is class in which you can access the entire mapping file
+ *    
  */
 
-namespace tdt\streamingrdfmapper;
+namespace tdt\streamingrdfmapper\vertere;
+use \EasyRdf_Parser_Turtle;
+use \EasyRdf_Graph;
+use \Exception;
 
-class Vertere {
+class Vertere extends \tdt\streamingrdfmapper\AMapper {
 
-    private $spec, $spec_uri, $resources, $base_uri, $lookups = array(), $null_values = array(), $header;
+    private $resources, $base_uri, $lookups = array(), $null_values = array(), $header;
 
-    public function __construct($spec, $spec_uri) {
-        $this->spec = $spec;
-        $this->spec_uri = $spec_uri;
+    private $mapping;
 
-        // Find resource specs
-        $this->resources = $spec->get_resource_triple_values($this->spec_uri, NS_CONV . 'resource');
-        if (empty($this->resources)) {
-            throw new Exception('Unable to find any resource specs to work from');
+    public function map(&$chunk){
+        return array("subject" => "<>" , "predicate" => "<>" , "object" => "<>" );
+    }
+    
+    protected function validate($mapping) {
+        //parsing the mapping file seems like a first good step
+        $this->mapping = new EasyRdf_Graph("#");
+        $parser = new EasyRdf_Parser_Turtle();
+        $parser->parse($this->mapping, $mapping, "turtle", "");
+        
+        // Find resource specs: check for resource triple values: this->resources is an array of Resources
+        $this->resources = $this->mapping->allOfType("<http://example.com/schema/data_conversion#Resource>");
+        if(empty($this->resources)) {
+            throw new Exception("Unable to find any resource specs to work from");
         }
 
-        $this->base_uri = $spec->get_first_literal($this->spec_uri, NS_CONV . 'base_uri');
-
+        //base_uri is the URI to be used when an empty prefix is used
+        $base_uri_literal = $this->mapping->getLiteral("<#>","<http://example.com/schema/data_conversion#base_uri>");
+        if(!is_object($base_uri_literal)){
+            throw new Exception("No base uri is set in the #Spec of the Vertere Mapping File");
+        }
+        $this->base_uri = $base_uri_literal->getValue();
+        
         // :null_values is a list of strings that indicate NULL in the source data
-        $null_value_list = $spec->get_first_resource($this->spec_uri, NS_CONV . 'null_values');
-        if ($null_value_list) {
-            foreach ($spec->get_list_values($null_value_list) as $null_value_resource) {
-                if ($null_value_resource["type"] == "literal") {
-                    array_push($this->null_values, $null_value_resource["value"]);
-                }
+        $null_value_list = $this->mapping->getResource("<#>", '<http://example.com/schema/data_conversion#null_values>');
+        
+        if ($null_value_list && $null_value_list instanceof \EasyRdf_Collection) { //!! If this rdf:List is not well built, this is going to give serious problems
+            while($null_value_list->valid()){
+                array_push($this->null_values, $null_value_list->current()->getValue());
+                $null_value_list->next();
             }
         } else {
             array_push($this->null_values, "");
-        }
-        foreach ($this->null_values as $value) {
-            
-        }
+        }        
     }
-
+            
     /*
      * Method to support named columns (MVS)
      */
-
     public function get_record_value($record, $source_column) {
         $key = array_search($source_column, $this->header);
         if ($key === false) {

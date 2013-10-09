@@ -9,7 +9,8 @@
     },
     "require": {
 	"semsol/arc2" : ">=2.2.3",
-	"guzzle/guzzle": "~3.7"
+	"guzzle/guzzle": "~3.7",
+        "easyrdf/easyrdf": "*"
     },
     "minimum-stability" : "dev",
     "autoload": {
