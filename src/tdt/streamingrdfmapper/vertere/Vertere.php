@@ -58,7 +58,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             }
         } else {
             array_push($this->null_values, "");
-        }        
+        }
     }
             
     /*
