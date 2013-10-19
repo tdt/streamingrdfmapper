@@ -1,0 +1,33 @@
+# The Vertere Ontology
+# First built by Rob Styles inspired by the Kasabi Vertere project
+# Starting 2012 it was extended by Miel Vander Sande
+# In 2013 it was formalized in this file by Pieter Colpaert for the DataTank project
+
+@prefix : <http://example.com/schema/data_conversion#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+:Spec rdfs:label "A Vertere specification specifies how a chunk of data in an associative array structure can be mapped to RDF resources and attributes." ;
+      rdfs:property :base_uri ;
+      rdfs:property :null_values .
+
+:base_uri rdfs:label "A base URI is added to every relative URI used" .
+
+:null_values rdfs:label "A list of strings that can denote a NULL value in the datesource" ;
+             rdfs:subclass_of rdf:List .
+
+:Resource rdfs:label "A Vertere resource is a definition of a thing that can be identified using a source column value from the chunk of data given." ;
+          rdfs:property :type ;
+          rdfs:property :attribute .
+
+:type rdfs:label "Type that needs to be given to the resulting resource created" .
+
+:attribute rdfs:label "An attribute of a resource distilled from one or more source columns" ;
+           rdfs:property :property, :language, :datatype, :value, :source_column, :source_columns, :look_up .
+
+
+
+:relationship rdfs:label "";
+              rdfs:property :object_from, :identity, :object, :subject .
+
+

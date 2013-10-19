@@ -20,6 +20,3 @@ abstract class AMapper{
     abstract public function map(&$chunk);
 
 }
-
-
-//$parser = ARC2::getTurtleParser();

@@ -1,6 +1,6 @@
 <?php
 /**
- * Conversions
+ * Conversions: a class which can be used to clean up data from within a mapping language
  *
  * @author until 2012: Rob Styles
  * @author starting 2012: Miel Vander Sande

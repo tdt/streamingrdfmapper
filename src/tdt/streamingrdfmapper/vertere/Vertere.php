@@ -7,12 +7,6 @@
  * @author starting 2013: Pieter Colpaert
  */
 
-/*
- * TODO: 
- *    - replace NS_CONV, put the right things in StreamingRDFMapper class instead, extend from AMapper etc.
- *    - Be sure there is class in which you can access the entire mapping file
- */
-
 namespace tdt\streamingrdfmapper\vertere;
 use \EasyRdf_Parser_Turtle;
 use \EasyRdf_Graph;
@@ -67,7 +61,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     /**
      * Get a value from a record - This is needed to allow automatic trimming of the value and to lower the array number with 1, as vertere starts to count from 1
      */
-    public function getRecordValue($record, $key) {
+    public function getRecordValue(&$record, $key) {
         //if the key doesn't exist in the record, lower the number with one and try again (we start counting from 1 in vertere)
         if (!array_key_exists($key, $record) && is_numeric($key) && array_key_exists($key -1, $record)){
             $key --;
@@ -101,7 +95,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     /**
      * Adds all types to the graph according to the mapping file
      */
-    private function addDefaultTypes(&$graph, $uris) {
+    private function addDefaultTypes(&$graph, &$uris) {
         foreach ($this->resources as $resource) {
             $types = $this->mapping->allResources($resource, "<" . $this->ns["vertere"] . "type>");
             foreach ($types as $type) {
@@ -115,7 +109,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     /**
      * Create attributes for all the the resources in the graph
      */
-    private function createAttributes(&$graph, $uris, $record) {
+    private function createAttributes(&$graph, &$uris, &$record) {
         foreach ($this->resources as $resource) {
             $attributes = $this->mapping->allResources($resource, "<" . $this->ns["vertere"] . "attribute>");
             foreach ($attributes as $attribute) {
@@ -124,13 +118,13 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         }
     }
 
-    private function createAttribute(&$graph, $uris, $record, $resource, $attribute) {
+    private function createAttribute(&$graph, &$uris, &$record, $resource, $attribute) {
         if (!isset($uris[$resource])) {
             return;
         }
         $subject = $uris[$resource];
         $property = $this->mapping->getResource($attribute, "<" . $this->ns["vertere"] . "property>");
-        $language = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "language>"); //TODO: document this parameter?
+        $language = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "language>")->getValue(); //TODO: document this parameter?
         $datatype = $this->mapping->getResource($attribute, "<" . $this->ns["vertere"] . "datatype>");
 
         $value = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "value>");
@@ -143,8 +137,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $source_value = $this->getRecordValue($record, $source_column->getValue());
         } else if ($source_columns) {
             $source_columns = $this->spec->get_list_values($source_columns);
-            $glue = $this->spec->get_first_literal($attribute, "<" . $this->ns["vertere"] . "source_column_glue>");
-            $filter = $this->spec->get_first_literal($attribute, "<" . $this->ns["vertere"] . "source_column_filter>");
+            $glue = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "source_column_glue>");
+            $filter = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "source_column_filter>");
             if (!isset($filter)) {
                 // default: accept anything
                 $filter = "//";
@@ -170,7 +164,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $lookup_value = $this->lookup($record, $lookup, $source_value);
 
             if ($lookup_value != null && $lookup_value['type'] == 'uri') {
-                $graph->add_resource_triple($subject, $property, $lookup_value['value']);
+                $graph->addLiteral($subject, $property, $lookup_value['value']);
                 return;
             }
             else {
@@ -183,19 +177,19 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         }
 
         $source_value = $this->process($attribute, $source_value);
-        $graph->add_literal_triple($subject, $property, $source_value, $language, $datatype);
+        $graph->addLiteral($subject, $property, $source_value, $language, $datatype);
     }
 
-    private function createRelationships(&$graph, $uris, $record) {
+    private function createRelationships(&$graph, &$uris, &$record) {
         foreach ($this->resources as $resource) {
             $relationships = $this->mapping->allResources($resource, "<" . $this->ns["vertere"] . "relationship>");
             foreach ($relationships as $relationship) {
-                $this->createRelationship($graph, $uris, $resource, $relationship, $record);
+                $this->createRelationship($graph, $uris, $resource, $relationship, &$record);
             }
         }
     }
 
-    private function createRelationship(&$graph, $uris, $resource, $relationship, $record) {
+    private function createRelationship(&$graph, &$uris, $resource, $relationship, &$record) {
         $subject = null;
         if (array_key_exists($resource, $uris))
             $subject = $uris[$resource];
@@ -214,7 +208,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         } else if ($identity) {
             // we create a link in situ, from a colum value
             // TODO: this should be merged with the createUri() code
-            $source_column = $this->spec->get_first_literal($identity, "<" . $this->ns["vertere"] . "source_column>");
+            $source_column = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column>");
 //            $source_column--;
 //            $source_value = $record[$source_column];
             $source_value = $this->getRecordValue($record, $source_column);
@@ -235,7 +229,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                 }
             }
 
-            $base_uri = $this->spec->get_first_literal($identity, "<" . $this->ns["vertere"] . "base_uri>");
+            $base_uri = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "base_uri>");
             if ($base_uri === null) {
                 $base_uri = $this->base_uri;
             }
@@ -253,7 +247,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         }
     }
 
-    private function createUris($record) {
+    private function createUris(&$record) {
         $uris = array();
         foreach ($this->resources as $resource) {
             if (!isset($uris[$resource])) {
@@ -263,11 +257,11 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         return $uris;
     }
 
-    private function create_template_uri($record, $template, $vars) {
+    private function create_template_uri(&$record, $template, $vars) {
         $var_arr = array();
         foreach ($vars as $var) {
-            $name = $this->spec->get_first_literal($var, "<" . $this->ns["vertere"] . "variable>");
-            $source_column = $this->spec->get_first_literal($var, "<" . $this->ns["vertere"] . "source_column>");
+            $name = $this->mapping->getLiteral($var, "<" . $this->ns["vertere"] . "variable>");
+            $source_column = $this->mapping->getLiteral($var, "<" . $this->ns["vertere"] . "source_column>");
             $value = $this->getRecordValue($record, $source_column);
             $var_arr[$name] = $value;
         }
@@ -299,7 +293,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $source_value = $this->getRecordValue($record, $source_column);
         } else if ($source_columns) {
             $source_columns = $this->spec->get_list_values($source_columns);
-            $glue = $this->spec->get_first_literal($identity, "<" . $this->ns["vertere"] . "source_column_glue>");
+            $glue = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column_glue>");
             $source_values = array();
 
             foreach ($source_columns as $source_column) {
@@ -348,7 +342,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         }
 
         //Decide on base_uri
-        $base_uri = $this->spec->get_first_literal($identity, "<" . $this->ns["vertere"] . "base_uri>");
+        $base_uri = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "base_uri>");
         if ($base_uri === null) {
             $base_uri = $this->base_uri;
         }
@@ -365,7 +359,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             }
         }
 
-        $container = $this->spec->get_first_literal($identity, "<" . $this->ns["vertere"] . "container>");
+        $container = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "container>");
         if (!empty($container) && !preg_match('%[/#]$%', $container)) {
             $container .= '/';
         }
@@ -436,7 +430,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                          * If it isn't, it will prepend the begining of the url, and it will url encode the value
                          */
                     case 'create_url':
-                        $regex_output = $this->spec->get_first_literal($resource, "<" . $this->ns["vertere"] . "url>");
+                        $regex_output = $this->mapping->getLiteral($resource, "<" . $this->ns["vertere"] . "url>");
                         $regex_pattern = "/^(?!http.+)/";
                         if (preg_match($regex_pattern, $value)) {
                             $value = urlencode($value);
@@ -446,7 +440,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         break;
 
                     case 'regex':
-                        $regex_pattern = $this->spec->get_first_literal($resource, "<" . $this->ns["vertere"] . "regex_match>");
+                        $regex_pattern = $this->mapping->getLiteral($resource, "<" . $this->ns["vertere"] . "regex_match>");
                         foreach (array('%', '/', '@', '!', '^', ',', '.', '-') as $candidate_delimeter) {
                             if (strpos($candidate_delimeter, $regex_pattern) === false) {
                                 $delimeter = $candidate_delimeter;
@@ -455,7 +449,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         }
                         //MVS: Added this as a correction, not sure what above foreach does but breaking the regex
                         $delimeter = "/";
-                        $regex_output = $this->spec->get_first_literal($resource, "<" . $this->ns["vertere"] . "regex_output>");
+                        $regex_output = $this->mapping->getLiteral($resource, "<" . $this->ns["vertere"] . "regex_output>");
                         $value = preg_replace("${delimeter}${regex_pattern}${delimeter}", $regex_output, $value);
                         break;
 //                    Now accesible under default
@@ -468,8 +462,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         break;
 
                     case 'substr':
-                        $substr_start = $this->spec->get_first_literal($resource, "<" . $this->ns["vertere"] . "substr_start>");
-                        $substr_length = $this->spec->get_first_literal($resource, "<" . $this->ns["vertere"] . "substr_length>");
+                        $substr_start = $this->mapping->getLiteral($resource, "<" . $this->ns["vertere"] . "substr_start>");
+                        $substr_length = $this->mapping->getLiteral($resource, "<" . $this->ns["vertere"] . "substr_length>");
                         $value = substr($value, $substr_start, $substr_length);
                         break;
 
@@ -477,7 +471,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         //When no built in function matches, a custom process function in called
                         //Made Conversion a little more flexible
                         if (method_exists("Conversions", $function))
-                            $value = Conversions::$function($value);
+                            //TODO: change this so that process doesn't contain any function anymore, but reads everything from the Conversions class
+                            $value = \tdt\streamingrdfmapper\Conversions::$function($value);
                         else
                             throw new Exception("Unknown process requested: $function\n");
                 }
@@ -547,9 +542,9 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             return $this->lookups[$lookup]['keys'][$key];
         }
 
-        $filename = $this->spec->get_first_literal($lookup, "<" . $this->ns["vertere"] . "lookup_csv_file>");
-        $key_column = $this->spec->get_first_literal($lookup, "<" . $this->ns["vertere"] . "lookup_key_column>");
-        $value_column = $this->spec->get_first_literal($lookup, "<" . $this->ns["vertere"] . "lookup_value_column>");
+        $filename = $this->mapping->getLiteral($lookup, "<" . $this->ns["vertere"] . "lookup_csv_file>");
+        $key_column = $this->mapping->getLiteral($lookup, "<" . $this->ns["vertere"] . "lookup_key_column>");
+        $value_column = $this->mapping->getLiteral($lookup, "<" . $this->ns["vertere"] . "lookup_value_column>");
         //retain file handle
         if (!isset($this->lookups[$lookup]['filehandle'])) {
             $this->lookups[$lookup]['filehandle'] = fopen($filename, 'r');

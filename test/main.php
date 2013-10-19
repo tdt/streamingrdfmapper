@@ -15,11 +15,10 @@ try{
 @prefix transit: <http://vocab.org/transit/terms/> .
 @prefix virtrdf: <http://www.openlinksw.com/schemas/virtrdf#> .
 
-
 <#> a :Spec
 ; :base_uri "tdt:package:resource"
 ; :resource <#Route>, <#boolean_lookup>
-; :null_values [a rdf:List ; rdf:first " " ; rdf:rest [ a rdf:List ; rdf:first "\n" ; rdf:rest [a rdf:List ; rdf:first "NULL" ] ] ]
+; :null_values [ rdf:first " " ; rdf:rest [ a rdf:List ; rdf:first "\n" ; rdf:rest [a rdf:List ; rdf:first "NULL" ] ] ]
 .
 
 <#Route> a :Resource
