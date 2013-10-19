@@ -29,6 +29,8 @@ try{
     ] 
 .
 ','Vertere');
+    var_dump($mapper->map(array("id" => "5")));
+    
 }
 catch(Exception $e){
     echo $e->getMessage();
