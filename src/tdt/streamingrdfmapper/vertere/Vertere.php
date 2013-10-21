@@ -30,23 +30,22 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         //parsing the mapping file seems like a first good step
         $this->mapping = new EasyRdf_Graph("#");
         $parser = new EasyRdf_Parser_Turtle();
-        $parser->parse($this->mapping, $mapping, "turtle", "");
-        
+        $parser->parse($this->mapping, $mapping, "turtle","http://foo.bar");
         // Find resource specs: check for resource triple values: this->resources is an array of Resources
-        $this->resources = $this->mapping->allOfType("<" . $this->ns["vertere"] +"Resource>");
+        $this->resources = $this->mapping->allOfType("<" . $this->ns["vertere"] . "Resource>");
         if(empty($this->resources)) {
             throw new Exception("Unable to find any resource specs to work from");
         }
 
         //base_uri is the URI to be used when an empty prefix is used
-        $base_uri_literal = $this->mapping->getLiteral("<#>","<" . $this->ns["vertere"] +"base_uri>");
+        $base_uri_literal = $this->mapping->getLiteral("<http://foo.bar#>","<" . $this->ns["vertere"] . "base_uri>");
         if(!is_object($base_uri_literal)){
             throw new Exception("No base uri is set in the #Spec of the Vertere Mapping File");
         }
         $this->base_uri = $base_uri_literal->getValue();
         
         // :null_values is a list of strings that indicate NULL in the source data
-        $null_value_list = $this->mapping->getResource("<#>", '<' . $this->ns["vertere"] +'null_values>');
+        $null_value_list = $this->mapping->getResource("<http://foo.bar#>", '<' . $this->ns["vertere"] . 'null_values>');
         
         if ($null_value_list && $null_value_list instanceof \EasyRdf_Collection) { //!! If this rdf:List is not well built, this is going to give serious problems
             while($null_value_list->valid()){
@@ -86,6 +85,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         //builds all the uris that can be built for this record according to the mapping file
         $uris = $this->createUris($chunk);
         $graph = new EasyRdf_Graph($this->base_uri);
+        
         $this->addDefaultTypes($graph, $uris);
         $this->createRelationships($graph, $uris, $chunk);
         $this->createAttributes($graph, $uris, $chunk);
@@ -100,7 +100,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $types = $this->mapping->allResources($resource, "<" . $this->ns["vertere"] . "type>");
             foreach ($types as $type) {
                 if (!empty($type) && isset($uris[$resource->getUri()])) {
-                    $graph->addType($uris[$resource->getUri()], $type);
+                    $graph->addType($uris[$resource->getUri()], $type->getUri());
                 }
             }
         }
@@ -119,12 +119,15 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     }
 
     private function createAttribute(&$graph, &$uris, &$record, $resource, $attribute) {
-        if (!isset($uris[$resource])) {
+        if (!isset($uris[$resource->getUri()])) {
             return;
         }
-        $subject = $uris[$resource];
+        $subject = $uris[$resource->getUri()];
         $property = $this->mapping->getResource($attribute, "<" . $this->ns["vertere"] . "property>");
-        $language = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "language>")->getValue(); //TODO: document this parameter?
+        $language = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "language>");
+        if($language){
+            $language = $language->getValue(); //TODO: document this parameter?
+        }
         $datatype = $this->mapping->getResource($attribute, "<" . $this->ns["vertere"] . "datatype>");
 
         $value = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "value>");
@@ -136,7 +139,15 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         } else if ($source_column) {
             $source_value = $this->getRecordValue($record, $source_column->getValue());
         } else if ($source_columns) {
-            $source_columns = $this->spec->get_list_values($source_columns);
+            $source_columns_collection = $this->spec->get_list_values($source_columns);
+            $source_columns = array();
+            if ($source_columns_collection && $source_columns_collection instanceof \EasyRdf_Collection) { //!! If this rdf:List is not well built, this is going to give serious problems
+                while($source_columns_collection->valid()){
+                    array_push($source_columns, $source_columns_collection->current()->getValue());
+                    $source_columns_collection->next();
+                }
+            }
+
             $glue = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "source_column_glue>");
             $filter = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "source_column_filter>");
             if (!isset($filter)) {
@@ -146,9 +157,6 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $source_values = array();
             foreach ($source_columns as $source_column) {
                 $source_column = $source_column['value'];
-
-//                $source_column--;
-//                $value = $record[$source_column];
                 $value = $this->getRecordValue($record, $source_column);
 
                 if (preg_match($filter, $value) != 0 && !in_array($value, $this->null_values)) {
@@ -184,7 +192,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         foreach ($this->resources as $resource) {
             $relationships = $this->mapping->allResources($resource, "<" . $this->ns["vertere"] . "relationship>");
             foreach ($relationships as $relationship) {
-                $this->createRelationship($graph, $uris, $resource, $relationship, &$record);
+                $this->createRelationship($graph, $uris, $resource, $relationship, $record);
             }
         }
     }
@@ -209,8 +217,6 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             // we create a link in situ, from a colum value
             // TODO: this should be merged with the createUri() code
             $source_column = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column>");
-//            $source_column--;
-//            $source_value = $record[$source_column];
             $source_value = $this->getRecordValue($record, $source_column);
 
             if (empty($source_value)) {
@@ -241,7 +247,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         }
 
         if ($subject && $property && $object) {
-            $graph->add_resource_triple($subject, $property, $object);
+            $graph->addResource($subject, $property, $object);
         } else {
             return;
         }
@@ -250,7 +256,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     private function createUris(&$record) {
         $uris = array();
         foreach ($this->resources as $resource) {
-            if (!isset($uris[$resource])) {
+            if (!isset($uris[$resource->getUri()])) {
                 $this->createUri($record, $uris, $resource);
             }
         }
@@ -279,9 +285,9 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         $source_columns = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "source_columns>");
         $source_resource = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "source_resource>");
         //Support for URI templates
-        $template = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "template>")->getValue();
-
-        if ($template) {
+        $template = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "template>");
+        if($template){
+            $template = $template->getValue();
             //Retrieve all declared variables and expand template
             //For now, only an unprocessed single column value is supported as a template variable
             //Future: support source_columns, source_resource, lookup and process as well => refactor whole method
@@ -372,7 +378,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
 
         if (!empty($source_value)) {
             $uri = "${base_uri}${container}${source_value}";
-            $uris[$resource] = $uri;
+            $uris[$resource->getUri()] = $uri;
         } else {
             $identity = $this->mapping->getResource($resource, "<" . $this->ns["vertere"] . "alternative_identity>");
             if ($identity) {
@@ -471,7 +477,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         //When no built in function matches, a custom process function in called
                         //Made Conversion a little more flexible
                         if (method_exists("Conversions", $function))
-                            //TODO: change this so that process doesn't contain any function anymore, but reads everything from the Conversions class
+                            //PC: TODO: change this so that process doesn't contain any function anymore, but reads everything from the Conversions class
                             $value = \tdt\streamingrdfmapper\Conversions::$function($value);
                         else
                             throw new Exception("Unknown process requested: $function\n");

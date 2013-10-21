@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 include_once("../vendor/autoload.php");
-try{
+//try{
     $mapper = new \tdt\streamingrdfmapper\StreamingRDFMapper('
 @prefix : <http://example.com/schema/data_conversion#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -16,22 +16,28 @@ try{
 @prefix virtrdf: <http://www.openlinksw.com/schemas/virtrdf#> .
 
 <#> a :Spec
-; :base_uri "tdt:package:resource"
+; :base_uri "http://data.irail.be/"
 ; :resource <#Route>, <#boolean_lookup>
-; :null_values [ rdf:first " " ; rdf:rest [ a rdf:List ; rdf:first "\n" ; rdf:rest [a rdf:List ; rdf:first "NULL" ] ] ]
+; :null_values [ a rdf:List ; rdf:first " " ; rdf:rest [ a rdf:List ; rdf:first "\n" ; rdf:rest [a rdf:List ; rdf:first "NULL" ] ] ]
 .
 
 <#Route> a :Resource
 ; :type transit:Route
 ; :identity [
     :source_column "id"
-    ] 
-.
-','Vertere');
-    var_dump($mapper->map(array("id" => "5")));
+    ]
+; :attribute [
+    :property xsd:string ;
+    :source_column "name"
+  ]
+.','Vertere');
+
+print $mapper->map(array("id" => "5", "name" => "test123"))->serialise("turtle");
     
-}
-catch(Exception $e){
-    echo $e->getMessage();
-}
+//}
+//catch(Exception $e){
+    
+    
+//   echo $e->getMessage();
+//}
 

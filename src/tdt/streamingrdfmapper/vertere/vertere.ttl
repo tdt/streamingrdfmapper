@@ -3,31 +3,151 @@
 # Starting 2012 it was extended by Miel Vander Sande
 # In 2013 it was formalized in this file by Pieter Colpaert for the DataTank project
 
-@prefix : <http://example.com/schema/data_conversion#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+#TODO: get a proper purl for this...
+@prefix vertere: <http://example.com/schema/data_conversion#> .
 
-:Spec rdfs:label "A Vertere specification specifies how a chunk of data in an associative array structure can be mapped to RDF resources and attributes." ;
-      rdfs:property :base_uri ;
-      rdfs:property :null_values .
+# vertere:Spec
 
-:base_uri rdfs:label "A base URI is added to every relative URI used" .
+vertere:Spec rdfs:label "A Vertere mapping specification" ;
+             rdfs:comment "A Vertere specification specifies how a chunk of data in an associative array structure can be mapped to RDF resources and attributes." ;
+             a rdfs:Class .
 
-:null_values rdfs:label "A list of strings that can denote a NULL value in the datesource" ;
-             rdfs:subclass_of rdf:List .
+# - Properties of vertere:Spec
 
-:Resource rdfs:label "A Vertere resource is a definition of a thing that can be identified using a source column value from the chunk of data given." ;
-          rdfs:property :type ;
-          rdfs:property :attribute .
+vertere:base_uri rdfs:label "A base URI" ;
+                 rdfs:comment "A base URI is added to every relative URI used" ;
+                 a rdf:Property ;
+                 rdfs:domain vertere:Spec ;
+                 rdfs:range xsd:string .
 
-:type rdfs:label "Type that needs to be given to the resulting resource created" .
+vertere:null_values rdfs:label "NULL values" ;
+                    rdfs:comment "A list of strings that represent a NULL value in the datasource" ;
+                    a rdf:Property ;
+                    rdfs:domain vertere:Spec ;
+                    rdf:range rdf:List .
 
-:attribute rdfs:label "An attribute of a resource distilled from one or more source columns" ;
-           rdfs:property :property, :language, :datatype, :value, :source_column, :source_columns, :look_up .
+## vertere:Spec → vertere:Resource
 
+vertere:Resource rdfs:label "Resource definition" ;
+                 rdfs:comment "A Vertere resource is a definition of a thing that can be identified using a source column value from the chunk of data given." ;
+                 a rdfs:Class .
 
+## - Properties of vertere:Resource
 
-:relationship rdfs:label "";
-              rdfs:property :object_from, :identity, :object, :subject .
+vertere:type rdfs:label "Type" ;
+             rdfs:comment "Type that needs to be given to the resulting resource created" ;
+             a rdf:Property ;
+             rdfs:domain vertere:Resource ;
+             rdf:range rdf:Class .
+
+vertere:attribute rdfs:label "Link to an Attribute of a Resource" ;
+                  rdfs:comment "Links an attribute to a resource (In Vertere, this is mostly fixed using a blank node)" ;
+                  a rdf:Property ;
+                  rdfs:domain vertere:Resource ;
+                  rdf:range vertere:Attribute .
+
+### vertere:Spec → vertere:Resource → vertere:Attribute
+
+vertere:Attribute rdfs:label "Attribute of a Resource" ;
+                  rdfs:comment "An attribute of a resource distilled from one or more source columns" ;
+                  a rdfs:Class .
+
+### - Properties of vertere:Attribute
+
+vertere:property rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+vertere:language rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+vertere:datatype rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+vertere:value rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+vertere:source_column rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+vertere:source_columns rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+vertere:lookup rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+vertere:source_column_glue rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+vertere:source_column_filter rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Attribute ;
+                 rdf:range <> .
+
+### vertere:Spec → vertere:Resource → vertere:Relationship
+
+vertere:Relationship rdfs:label "" ;
+                     rdfs:comment "";
+                     a rdfs:Class .
+
+### - Properties of vertere:Relationship
+
+vertere:property rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Relationship ;
+                 rdf:range <> .
+
+vertere:object_from rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Relationship ;
+                 rdf:range <> .
+
+vertere:identity rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Relationship ;
+                 rdf:range <> .
+
+vertere:object rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Relationship ;
+                 rdf:range <> .
+
+vertere:subject rdfs:label "";
+                 rdfs:comment "";
+                 a rdf:Property ;
+                 rdfs:domain vertere:Relationship ;
+                 rdf:range <> .
+
 
 
