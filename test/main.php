@@ -3,7 +3,8 @@
 include_once("../vendor/autoload.php");
 //try{
     $mapper = new \tdt\streamingrdfmapper\StreamingRDFMapper('
-@prefix : <http://example.com/schema/data_conversion#> .
+#@prefix : <http://example.com/schema/data_conversion#> .
+@prefix : <http://vocab.mmlab.be/vertere/terms#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -27,12 +28,23 @@ include_once("../vendor/autoload.php");
     :source_column "id"
     ]
 ; :attribute [
-    :property xsd:string ;
+    :property dc:title;
     :source_column "name"
   ]
+; :relationship [
+    :property <http://foo.bar/has_park> ;
+    :object_to <#Park>
+] .
+
+<#Park> a :Resource
+; :type schema:Park
+; :identity [
+    :source_column "park";
+    :base_uri "http://parks.be/"
+   ]
 .','Vertere');
 
-print $mapper->map(array("id" => "5", "name" => "test123"))->serialise("turtle");
+print $mapper->map(array("id" => "5", "name" => "test123", "park" => "Citadel"))->serialise("turtle");
     
 //}
 //catch(Exception $e){

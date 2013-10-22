@@ -17,7 +17,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     private $resources, $base_uri, $lookups = array(), $null_values = array();
 
     private $ns = array(
-        "vertere" => "http://example.com/schema/data_conversion#",
+        //"vertere" => "http://example.com/schema/data_conversion#",
+        "vertere" => "http://vocab.mmlab.be/vertere/terms#",
 	"rdfs" => "http://www.w3.org/2000/01/rdf-schema#",
     );
 
@@ -192,6 +193,9 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         foreach ($this->resources as $resource) {
             $relationships = $this->mapping->allResources($resource, "<" . $this->ns["vertere"] . "relationship>");
             foreach ($relationships as $relationship) {
+                echo "creating relationship";
+                var_dump($relationship);
+                
                 $this->createRelationship($graph, $uris, $resource, $relationship, $record);
             }
         }
@@ -199,8 +203,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
 
     private function createRelationship(&$graph, &$uris, $resource, $relationship, &$record) {
         $subject = null;
-        if (array_key_exists($resource, $uris))
-            $subject = $uris[$resource];
+        if (array_key_exists($resource->getUri(), $uris))
+            $subject = $uris[$resource->getUri()];
 
         $property = $this->mapping->getResource($relationship, "<" . $this->ns["vertere"] . "property>");
 
@@ -211,11 +215,9 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
 
         if ($object_from) {
             //Prevents PHP warning on key not being present  
-            if (isset($uris[$object_from]))
-                $object = $uris[$object_from];
+            if (isset($uris[$object_from->getUri()]))
+                $object = $uris[$object_from->getUri()];
         } else if ($identity) {
-            // we create a link in situ, from a colum value
-            // TODO: this should be merged with the createUri() code
             $source_column = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column>");
             $source_value = $this->getRecordValue($record, $source_column);
 
@@ -225,10 +227,10 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
 
             //Check for lookups
             $lookup = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "lookup>");
-            if ($lookup != null) {
-                $lookup_value = $this->lookup($record, $lookup, $source_value);
+            if ($lookup) {
+                $lookup_value = $this->lookup($record, $lookup->getValue(), $source_value);
                 if ($lookup_value != null && $lookup_value['type'] == 'uri') {
-                    $uris[$resource] = $lookup_value['value'];
+                    $uris[$resource->getUri()] = $lookup_value['value'];
                     return;
                 } else {
                     $source_value = $lookup_value['value'];
@@ -236,7 +238,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             }
 
             $base_uri = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "base_uri>");
-            if ($base_uri === null) {
+            if (! $base_uri->getValue()) {
                 $base_uri = $this->base_uri;
             }
             $source_value = $this->process($identity, $source_value);
@@ -280,7 +282,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         if (!$identity) {
             $identity = $this->mapping->getResource($resource, "<" . $this->ns["vertere"] . "identity>");
         }
-        $source_column = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column>")->getValue();
+        $source_column = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column>");
         //support for multiple source columns
         $source_columns = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "source_columns>");
         $source_resource = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "source_resource>");
@@ -296,7 +298,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $uris[$resource] = $uri;
             return;
         } else if ($source_column) {
-            $source_value = $this->getRecordValue($record, $source_column);
+            $source_value = $this->getRecordValue($record, $source_column->getValue());
         } else if ($source_columns) {
             $source_columns = $this->spec->get_list_values($source_columns);
             $glue = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column_glue>");
@@ -325,12 +327,12 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                 $source_value = implode($glue, $source_values);
             }
         } else if ($source_resource) {
-            if (!isset($uris[$source_resource])) {
-                $this->createUri($record, $uris, $source_resource);
+            if (!isset($uris[$source_resource->getUri()])) {
+                $this->createUri($record, $uris, $source_resource->getUri());
             }
-            //Prevents PHP warning on key not being present   
-            if (isset($uris[$source_resource]))
-                $source_value = $uris[$source_resource];
+            //Prevents PHP warning on key not being present
+            if (isset($uris[$source_resource->getUri()]))
+                $source_value = $uris[$source_resource->getUri()];
         } else {
             return;
         }
