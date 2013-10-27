@@ -14,9 +14,7 @@
 @prefix transit: <http://vocab.org/transit/terms/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-
 <#> a :Spec;
-:resource <#airport>, <#country>, <#continent>, <#region>, <#boolean_lookup>, <#municipality>, <#ourairports_page>, <#naptan_resource>, <#airport_type>;
 :base_uri "http://data.example.com/airports/" .
 
 <#airport> a :Resource

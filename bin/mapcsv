@@ -1,9 +1,10 @@
 #!/usr/bin/env php
 <?php
-   /**
-    * @Usage:
-    * Call from root: ./bin/mapcsv examples/airport.spec.ttl examples/airport.csv
-    */
+
+/**
+ * @Usage:
+ * Call from root: ./bin/mapcsv examples/airport.spec.ttl examples/airport.csv
+ */
 include_once("vendor/autoload.php");
 
 if(!isset($argv[1])){
@@ -33,7 +34,12 @@ try{
                     //$csvRow = $csvRow . $delimiter . $this->enclose($data[$c]);
                     $row[$headerrow[$c]] = $data[$c];
                 }
-                print $mapper->map($row)->serialise("ntriples");
+//                print $mapper->map($row)->serialise("ntriples");
+                $triples = $mapper->map($row);
+                foreach($triples as $triple) {
+                    echo $triple["subject"] . " " . $triple["predicate"] . " " . $triple["object"] . " . \n" ;
+                }
+                
             }
             $lines ++;
         }

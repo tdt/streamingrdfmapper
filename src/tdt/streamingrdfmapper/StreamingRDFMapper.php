@@ -42,8 +42,12 @@ class StreamingRDFMapper{
      * Map a chunk towards triples.
      * @param chunk an array
      */
-    public function map($chunk){
-        return $this->mapper->map($chunk);
+    public function map($chunk, $easyrdf = false){
+        if($easyrdf){
+            return $this->mapper->mapToEasyRDF($chunk);
+        }else{
+            return $this->mapper->map($chunk);
+        }
     }
 
 }

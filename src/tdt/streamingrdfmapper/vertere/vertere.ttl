@@ -1,157 +1,173 @@
-# The Vertere Ontology
-# First built by Rob Styles inspired by the Kasabi Vertere project
-# Starting 2012 it was extended by Miel Vander Sande
-# In 2013 it was formalized in this file by Pieter Colpaert for the DataTank project
-
-@prefix oldvertere: <http://example.com/schema/data_conversion#> .
-@prefix vertere: <http://vocab.mmlab.be/vertere/terms#>
-
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix : <http://vocab.mmlab.org/vertere/terms#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vertere: <http://vocab.mmlab.be/vertere/terms#> .
+@base <http://vocab.mmlab.org/vertere/terms> .
 
-# vertere:Spec
+<http://vocab.mmlab.org/vertere/terms> rdf:type owl:Ontology .
 
-vertere:Spec rdfs:label "A Vertere mapping specification" ;
-             rdfs:comment "A Vertere specification specifies how a chunk of data in an associative array structure can be mapped to RDF resources and attributes." ;
-             owl:sameAs oldvertere:Spec ;
-             a rdfs:Class .
 
-# - Properties of vertere:Spec
+#################################################################
+#
+#    Object Properties
+#
+#################################################################
 
-vertere:base_uri rdfs:label "A base URI" ;
-                 rdfs:comment "A base URI is added to every relative URI used" ;
-                 owl:sameAs oldvertere:base_uri ;
-                 a rdf:Property ;
-                 rdfs:domain vertere:Spec ;
-                 rdfs:range xsd:string .
 
-vertere:null_values rdfs:label "NULL values" ;
-                    rdfs:comment "A list of strings that represent a NULL value in the datasource" ;
-                    owl:sameAs oldvertere:null_values ;
-                    a rdf:Property ;
-                    rdfs:domain vertere:Spec ;
-                    rdf:range rdf:List .
+###  http://vocab.mmlab.org/vertere/terms#attribute
 
-## vertere:Spec → vertere:Resource
+:attribute rdf:type owl:ObjectProperty ;
+           
+           rdfs:comment "Links an attribute to a resource (In Vertere, this is mostly fixed using a blank node)" .
 
-vertere:Resource rdfs:label "Resource definition" ;
-                 rdfs:comment "A Vertere resource is a definition of a thing that can be identified using a source column value from the chunk of data given." ;
-                 owl:sameAs oldvertere:Resource ;
-                 a rdfs:Class .
 
-## - Properties of vertere:Resource
 
-vertere:type rdfs:label "Type" ;
-             rdfs:comment "Type that needs to be given to the resulting resource created" ;
-             owl:sameAs oldvertere:type ;
-             a rdf:Property ;
-             rdfs:domain vertere:Resource ;
-             rdf:range rdf:Class .
+###  http://vocab.mmlab.org/vertere/terms#identity
 
-vertere:attribute rdfs:label "Link to an Attribute of a Resource" ;
-                  rdfs:comment "Links an attribute to a resource (In Vertere, this is mostly fixed using a blank node)" ;
-                  owl:sameAs oldvertere:attribute ;
-                  a rdf:Property ;
-                  rdfs:domain vertere:Resource ;
-                  rdf:range vertere:Attribute .
+:identity rdf:type owl:ObjectProperty .
 
-### vertere:Spec → vertere:Resource → vertere:Attribute
 
-vertere:Attribute rdfs:label "Attribute of a Resource" ;
-                  rdfs:comment "An attribute of a resource distilled from one or more source columns" ;
-                  owl:sameAs oldvertere:Attribute ;
-                  a rdfs:Class .
 
-### - Properties of vertere:Attribute
+###  http://vocab.mmlab.org/vertere/terms#language
 
-vertere:property rdfs:label "Property class";
-                 rdfs:comment "The class of the property to map towards. This is for instance rdfs:label.";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Attribute .
+:language rdf:type owl:ObjectProperty ;
+          
+          rdfs:comment "The language of the attribute" ;
+          
+          rdfs:domain :Attribute .
 
-vertere:language rdfs:label "Language of the attribute" ;
-                 rdfs:comment "The language of the attribute" ;
-                 a rdf:Property ;
-                 rdfs:domain vertere:Attribute ;
-                 rdf:range xsd:string .
 
-vertere:datatype rdfs:label "Datatype";
-                 rdfs:comment "The data type of the object. This can be for instance an xsd:string";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Attribute .
-                
-vertere:value rdfs:label "A fixed value";
-              rdfs:comment "A fixed value which can be used to indicate an extra column. E.g. you can use this to add information about units used in another column.";
-              a rdf:Property ;
-              rdfs:domain vertere:Attribute .
 
-vertere:source_column rdfs:label "The source column";
-                      rdfs:comment "The source column key name to be used for this attribute";
-                      a rdf:Property ;
-                      rdfs:domain vertere:Attribute ;
-                      rdf:range <> .
+###  http://vocab.mmlab.org/vertere/terms#lookup
 
-vertere:source_columns rdfs:label "";
-                 rdfs:comment "";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Attribute ;
-                 rdf:range <> .
+:lookup rdf:type owl:ObjectProperty ;
+        
+        rdfs:range :Lookup ;
+        
+        rdfs:domain :Resource .
 
-vertere:lookup rdfs:label "";
-                 rdfs:comment "";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Attribute ;
-                 rdf:range <> .
 
-vertere:source_column_glue rdfs:label "";
-                 rdfs:comment "";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Attribute ;
-                 rdf:range <> .
 
-vertere:source_column_filter rdfs:label "";
-                             rdfs:comment "";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Attribute ;
-                 rdf:range <> .
+###  http://vocab.mmlab.org/vertere/terms#property
 
-vertere:property a rdf:Property .
+:property rdf:type owl:ObjectProperty ;
+          rdfs:comment "The class of the property to map towards. This is for instance rdfs:label." ;
+          
+          rdfs:domain :Attribute ,
+                      :Relationship .
 
-### vertere:Spec → vertere:Resource → vertere:Relationship
 
-vertere:Relationship rdfs:label "" ;
-                     rdfs:comment "";
-                     a rdfs:Class .
 
-### - Properties of vertere:Relationship
+###  http://vocab.mmlab.org/vertere/terms#relationship
 
-vertere:property rdfs:label "Property class";
-                 rdfs:comment "The class of the property to map towards, or the class of the relationship. This is for instance rdfs:label or owl:sameAs.";
-                 rdfs:domain vertere:Relationship , vertere:Attribute .
+:relationship rdf:type owl:ObjectProperty .
 
-vertere:object_from rdfs:label "";
-                 rdfs:comment "";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Relationship ;
-                 rdf:range <> .
 
-vertere:identity rdfs:label "";
-                 rdfs:comment "";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Relationship ;
-                 rdf:range <> .
 
-vertere:object rdfs:label "";
-                 rdfs:comment "";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Relationship ;
-                 rdf:range <> .
+###  http://vocab.mmlab.org/vertere/terms#type
 
-vertere:subject rdfs:label "";
-                 rdfs:comment "";
-                 a rdf:Property ;
-                 rdfs:domain vertere:Relationship ;
-                 rdf:range <> .
+:type rdf:type owl:ObjectProperty ;
+      
+      rdfs:comment "Type that needs to be given to the resulting resource created" .
+
+
+
+
+
+#################################################################
+#
+#    Data properties
+#
+#################################################################
+
+
+###  http://vocab.mmlab.org/vertere/terms#base_uri
+
+:base_uri rdf:type owl:DatatypeProperty ;
+          
+          rdfs:comment "A base URI is added to every relative URI used" .
+
+
+:datatype rdf:type owl:DatatypeProperty ;
+                 rdfs:comment "The data type of the object. This can be for instance an xsd:string" .
+
+:value rdf:type owl:DatatypeProperty ;
+               rdfs:comment "A fixed value which can be used to indicate an extra column. E.g. you can use this to add information about units used in another column." .
+
+:source_column rdf:type owl:DatatypeProperty ;                      rdfs:comment "The source column key name to be used for this attribute" .
+
+###  http://vocab.mmlab.org/vertere/terms#null_values
+
+:null_values rdf:type owl:DatatypeProperty ;
+             
+             rdfs:comment "A list of strings that represent a NULL value in the datasource" .
+
+
+
+###  http://vocab.mmlab.org/vertere/terms#type
+
+:type rdf:type owl:DatatypeProperty ;
+      
+      rdfs:comment "Type that needs to be given to the resulting resource created" .
+
+
+
+
+
+#################################################################
+#
+#    Classes
+#
+#################################################################
+
+
+###  http://vocab.mmlab.org/vertere/terms#Attribute
+
+:Attribute rdf:type owl:Class ;
+           
+           rdfs:comment "An attribute of a resource distilled from one or more source columns" .
+
+
+
+###  http://vocab.mmlab.org/vertere/terms#Identity
+
+:Identity rdf:type owl:Class .
+
+
+
+###  http://vocab.mmlab.org/vertere/terms#Lookup
+
+:Lookup rdf:type owl:Class .
+
+
+
+###  http://vocab.mmlab.org/vertere/terms#Relationship
+
+:Relationship rdf:type owl:Class .
+
+
+
+###  http://vocab.mmlab.org/vertere/terms#Resource
+
+:Resource rdf:type owl:Class ;
+          
+          rdfs:comment "A Vertere resource is a definition of a thing that can be identified using a source column value from the chunk of data given." .
+
+
+
+###  http://vocab.mmlab.org/vertere/terms#Spec
+
+:Spec rdf:type owl:Class ;
+      
+      rdfs:comment "A Vertere specification specifies how a chunk of data in an associative array structure can be mapped to RDF resources and attributes." .
+
+
+
+
+
+
+###  Generated by the OWL API (version 3.4.2) http://owlapi.sourceforge.net
 

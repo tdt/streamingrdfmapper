@@ -18,8 +18,8 @@ include_once("../vendor/autoload.php");
 
 <#> a :Spec
 ; :base_uri "http://data.irail.be/"
-; :resource <#Route>, <#boolean_lookup>
-; :null_values [ a rdf:List ; rdf:first " " ; rdf:rest [ a rdf:List ; rdf:first "\n" ; rdf:rest [a rdf:List ; rdf:first "NULL" ] ] ]
+#; :null_values [ a rdf:List ; rdf:first " " ; rdf:rest [ a rdf:List ; rdf:first "\n" ; rdf:rest [a rdf:List ; rdf:first "NULL" ] ] ]
+; :null_values ( " " "\n" "NULL" )
 .
 
 <#Route> a :Resource
@@ -44,7 +44,8 @@ include_once("../vendor/autoload.php");
    ]
 .','Vertere');
 
-print $mapper->map(array("id" => "5", "name" => "test123", "park" => "Citadel"))->serialise("turtle");
+$triples = $mapper->map(array("id" => "5", "name" => "test123", "park" => "Citadel"), true)->serialise("turtle");
+print $triples;
     
 //}
 //catch(Exception $e){
