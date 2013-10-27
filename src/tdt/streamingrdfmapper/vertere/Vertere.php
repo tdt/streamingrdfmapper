@@ -140,7 +140,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         } else if ($source_column) {
             $source_value = $this->getRecordValue($record, $source_column->getValue());
         } else if ($source_columns) {
-            $source_columns_collection = $this->spec->get_list_values($source_columns);
+            $source_columns_collection = $source_columns;
             $source_columns = array();
             if ($source_columns_collection && $source_columns_collection instanceof \EasyRdf_Collection) { //!! If this rdf:List is not well built, this is going to give serious problems
                 while($source_columns_collection->valid()){
@@ -157,7 +157,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             }
             $source_values = array();
             foreach ($source_columns as $source_column) {
-                $source_column = $source_column['value'];
+                $source_column = $source_column;
                 $value = $this->getRecordValue($record, $source_column);
 
                 if (preg_match($filter, $value) != 0 && !in_array($value, $this->null_values)) {
@@ -193,9 +193,6 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         foreach ($this->resources as $resource) {
             $relationships = $this->mapping->allResources($resource, "<" . $this->ns["vertere"] . "relationship>");
             foreach ($relationships as $relationship) {
-                echo "creating relationship";
-                var_dump($relationship);
-                
                 $this->createRelationship($graph, $uris, $resource, $relationship, $record);
             }
         }
@@ -392,9 +389,17 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     public function process($resource, $value) {
         $processes = $this->mapping->getResource($resource, "<" . $this->ns["vertere"] . "process>");
         if ($processes != null) {
-            $process_steps = $this->spec->get_list_values($processes);
+            $process_steps_list = $processes;
+            $process_steps = array();
+            if ($process_steps_list && $process_steps_list instanceof \EasyRdf_Collection) { //!! If this rdf:List is not well built, this is going to give serious problems
+                while($process_steps_list->valid()){
+                    array_push($process_steps, $process_steps_list->current());
+                    $process_steps_list->next();
+                }
+            }
+            
             foreach ($process_steps as $step) {
-                $function = str_replace(NS_CONV, "", $step['value']);
+                $function = str_replace($this->ns["vertere"], "", $step->getUri());
                 switch ($function) {
                     case 'normalise':
                         //$value = strtolower(str_replace(' ', '_', trim($value)));
@@ -449,6 +454,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
 
                     case 'regex':
                         $regex_pattern = $this->mapping->getLiteral($resource, "<" . $this->ns["vertere"] . "regex_match>");
+                        $regex_pattern = $regex_pattern->getValue();
                         foreach (array('%', '/', '@', '!', '^', ',', '.', '-') as $candidate_delimeter) {
                             if (strpos($candidate_delimeter, $regex_pattern) === false) {
                                 $delimeter = $candidate_delimeter;
@@ -460,10 +466,6 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         $regex_output = $this->mapping->getLiteral($resource, "<" . $this->ns["vertere"] . "regex_output>");
                         $value = preg_replace("${delimeter}${regex_pattern}${delimeter}", $regex_output, $value);
                         break;
-//                    Now accesible under default
-//                    case 'feet_to_metres':
-//                        $value = Conversions::feet_to_metres($value);
-//                        break;
 
                     case 'round':
                         $value = round($value);
@@ -478,11 +480,13 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                     default:
                         //When no built in function matches, a custom process function in called
                         //Made Conversion a little more flexible
-                        if (method_exists("Conversions", $function))
+                        if (method_exists("\\tdt\\streamingrdfmapper\\Conversions", $function)) {
                             //PC: TODO: change this so that process doesn't contain any function anymore, but reads everything from the Conversions class
                             $value = \tdt\streamingrdfmapper\Conversions::$function($value);
-                        else
+                        }
+                        else {
                             throw new Exception("Unknown process requested: $function\n");
+                        }
                 }
             }
         }
@@ -490,9 +494,10 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     }
 
     public function lookup( $record, $lookup, $key) {
-        if ($this->spec->get_subject_property_values($lookup, "<" . $this->ns["vertere"] . "lookup_entry>")) {
+        //TODO: convert this to $this->mapping
+        if ($this->mapping->getLiteral($lookup, "<" . $this->ns["vertere"] . "lookup_entry>")) {
             return $this->lookup_config_entries($record, $lookup, $key);
-        } else if ($this->spec->get_subject_property_values($lookup, "<" . $this->ns["vertere"] . "lookup_csv_file>")) {
+        } else if ($this->mapping->getLiteral($lookup, "<" . $this->ns["vertere"] . "lookup_csv_file>")) {
             return $this->lookup_csv_file($lookup, $key);
         }
     }

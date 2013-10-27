@@ -1,0 +1,51 @@
+#!/usr/bin/env php
+<?php
+   /**
+    * @Usage:
+    * Call from root: ./bin/mapcsv examples/airport.spec.ttl examples/airport.csv
+    */
+include_once("vendor/autoload.php");
+
+if(!isset($argv[1])){
+    die("Please set the mappingfile as your first argument");
+}
+
+if(!isset($argv[2])){
+    die("Please set the csv file as your second argument");
+}
+
+try{
+    $mapper = new \tdt\streamingrdfmapper\StreamingRDFMapper(file_get_contents($argv[1]),'Vertere');
+    $delimiter = ",";
+    $lines = 0;
+    $headerrow = array();
+    if (($handle = fopen($argv[2], "r")) !== FALSE) {
+        while (($data = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+            if ($lines == 0) {
+                $num = count($data);
+                for ($c=0; $c < $num; $c++) {
+                    $headerrow[] = $data[$c];
+                }
+            }else{
+                $num = count($data);
+                $row = array();
+                for ($c=0; $c < $num; $c++) {
+                    //$csvRow = $csvRow . $delimiter . $this->enclose($data[$c]);
+                    $row[$headerrow[$c]] = $data[$c];
+                }
+                print $mapper->map($row)->serialise("ntriples");
+            }
+            $lines ++;
+        }
+        fclose($handle);
+    }else{
+        die("Could Not Get Data from CSV file");
+    }
+
+    
+}
+catch(Exception $e){
+    echo "Oops, something really bad happened:\n";
+    echo $e->getMessage();
+}
+
