@@ -37,9 +37,19 @@ Not familiar with composer? Read about it [here](http://getcomposer.org)
 ```php
 $mapping = file_get_contents("http://foo.bar/mapping/file.ttl");
 $typeofmapping = "Vertere"; //other options: "RML", "OneonOne"
-
 $mapper = new StreamingRDFMapper($mapping, $typeofmapping);
 $data = foo\bar\getNextDataChunk(); //get data from somewhere: can be a csv file you've extracted, some data you've scraped or XML or JSON file you've flattened and put into an array
-$triples = $mapper->map($data);
+$getEasyRDFGraph = true;
+$triplesEasyRDFGraph = $mapper->map($data, $getEasyRDFGraph);
+$triplesArray = $mapper->map($data, !$getEasyRDFGraph);
+//print ntriples through easy graph (some overhead, but really good library*)
+print $triplesEasyRDFGraph->serialize("ntriples");
+//print ntriples through array (faster)
+foreach($triplesArray as $triple){
+  print implode(" ", $triple);
+  print " . \n";
+}
+
 ```
+* The EasyRDF library 
 
