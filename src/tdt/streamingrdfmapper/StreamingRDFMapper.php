@@ -15,7 +15,6 @@ class StreamingRDFMapper{
     
     //Strategy design pattern
     private $mapper;
-
     private $mappertypes = array("OneOnOne" => "\\tdt\\streamingrdfmapper\\oneonone\\OneOnOne",
                                  "Vertere" => "\\tdt\\streamingrdfmapper\\vertere\\Vertere",
                                  "RML" => "\\tdt\\streamingrdfmapper\\rml\\RML");
@@ -37,10 +36,21 @@ class StreamingRDFMapper{
             throw new Exception("Mapper does not exist: " . $typeofmapping);
         }
     }
+
+    /**
+     * This function sets the base Uri for the mapping language
+     * @param baseUri a uri to be added at the beginning of every final resource with a relative path
+     */
+    public function setBaseUri($baseUri){
+        $this->mapper->setBaseUri($baseUri);
+    }
+    
     
     /**
      * Map a chunk towards triples.
      * @param chunk an array
+     * @param easyrdf a boolean whether or not an EasyRDF class should be returned. Defaults to false.
+     * @return triples in an easyRDF class or in a simple array, depending on the second arguments.
      */
     public function map($chunk, $easyrdf = false){
         if($easyrdf){

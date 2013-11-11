@@ -3,7 +3,6 @@
 include_once("../vendor/autoload.php");
 //try{
     $mapper = new \tdt\streamingrdfmapper\StreamingRDFMapper('
-#@prefix : <http://example.com/schema/data_conversion#> .
 @prefix : <http://vocab.mmlab.be/vertere/terms#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -18,7 +17,6 @@ include_once("../vendor/autoload.php");
 
 <#> a :Spec
 ; :base_uri "http://data.irail.be/"
-#; :null_values [ a rdf:List ; rdf:first " " ; rdf:rest [ a rdf:List ; rdf:first "\n" ; rdf:rest [a rdf:List ; rdf:first "NULL" ] ] ]
 ; :null_values ( " " "\n" "NULL" )
 .
 
@@ -29,7 +27,12 @@ include_once("../vendor/autoload.php");
     ]
 ; :attribute [
     :property dc:title;
-    :source_column "name"
+    :source_column "name";
+    :language "en";
+    :datatype xsd:string ;
+    :process ( :regex ) ;
+    :regex_match "123";
+    :regex_output "";
   ]
 ; :relationship [
     :property <http://foo.bar/has_park> ;

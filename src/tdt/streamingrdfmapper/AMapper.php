@@ -11,6 +11,8 @@ use \EasyRdf_Graph;
 
 abstract class AMapper{
     private $mapping;
+    protected $baseUri;
+
     public function __construct(&$mapping){
         //validate mapping first
         $this->validate($mapping);
@@ -20,6 +22,14 @@ abstract class AMapper{
     abstract protected function validate(&$mapping);
 
     abstract public function map(&$chunk);
+
+    /**
+     * This function sets the base Uri for the mapping language
+     * @param baseUri a uri to be added at the beginning of every final resource with a relative path
+     */
+    public function setBaseUri($baseUri){
+        $this->baseUri = $baseUri;
+    }
 
     /**
      * Maps towards an easyRDF graph

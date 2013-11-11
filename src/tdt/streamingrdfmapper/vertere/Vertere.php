@@ -43,9 +43,14 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         //base_uri is the URI to be used when an empty prefix is used
         $base_uri_literal = $this->mapping->getLiteral("<http://foo.bar#>","<" . $this->ns["vertere"] . "base_uri>");
         if(!is_object($base_uri_literal)){
-            throw new Exception("No base uri is set in the #Spec of the Vertere Mapping File");
+            if(!isset($this->baseUri)){
+                throw new Exception("No base uri is set in the #Spec of the Vertere Mapping File");
+            }else{
+                $this->base_uri = $this->baseUri;
+            }
+        }else{
+            $this->base_uri = $base_uri_literal->getValue();
         }
-        $this->base_uri = $base_uri_literal->getValue();
         
         // :null_values is a list of strings that indicate NULL in the source data
         $null_value_list = $this->mapping->getResource("<http://foo.bar#>", '<' . $this->ns["vertere"] . 'null_values>');
@@ -80,7 +85,6 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     public function map(&$chunk){
         //builds all the uris that can be built for this record according to the mapping file
         $uris = $this->createUris($chunk);
-        //$graph = new EasyRdf_Graph($this->base_uri);
         $graph = array();
         $this->addDefaultTypes($graph, $uris);
         $this->createRelationships($graph, $uris, $chunk);
@@ -96,13 +100,10 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $types = $this->mapping->allResources($resource, "<" . $this->ns["vertere"] . "type>");
             foreach ($types as $type) {
                 if (!empty($type) && isset($uris[$resource->getUri()])) {
-                    //$graph->addType($uris[$resource->getUri()], $type->getUri());
                     $graph[] = array(
                         "subject" => "<" . $uris[$resource->getUri()] . ">",
                         "predicate" => "<" . $this->ns["rdf"] . "type"  . ">",
-                        "object" => "<" . $type->getUri()  . ">",
-//                        "type" => "",
-//                        "language" => ""
+                        "object" => "<" . $type->getUri()  . ">"
                     );
                     
                 }
@@ -129,7 +130,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         $subject = $uris[$resource->getUri()];
         $property = $this->mapping->getResource($attribute, "<" . $this->ns["vertere"] . "property>");
         $language = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "language>");
-        if($language){
+        
+        if( $language){
             $language = $language->getValue(); //TODO: document this parameter?
         }
         $datatype = $this->mapping->getResource($attribute, "<" . $this->ns["vertere"] . "datatype>");
@@ -176,13 +178,10 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $lookup_value = $this->lookup($record, $lookup, $source_value);
 
             if ($lookup_value != null && $lookup_value['type'] == 'uri') {
-                //$graph->addLiteral($subject, $property, $lookup_value['value']);
                 $graph[] = array(
                     "subject" => "<" . $subject . ">",
                     "predicate" => "<" . $property . ">",
-                    "object" => "\"" . $lookup_value['value'] . "\"",
-//                        "type" => "",
-//                        "language" => ""
+                    "object" => "\"" . str_replace("\"", "\\\"",$lookup_value['value']) . "\""
                 );
                 return;
             }
@@ -196,13 +195,20 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         }
 
         $source_value = $this->process($attribute, $source_value);
-        //$graph->addLiteral($subject, $property, $source_value, $language, $datatype);        
+        $suffix = "";
+        if (isset($datatype)){
+            $suffix = "^^<$datatype>";
+        }
+        
+        if (isset($language)){
+            $suffix .= "@$language";
+        }
+        
+        $suffix = 
         $graph[] = array(
             "subject" => "<" . $subject . ">",
             "predicate" => "<" . $property . ">",
-            "object" => "\"" . $source_value . "\"",
-            "type" => $datatype,
-            "language" => $language
+            "object" => "\"" . str_replace("\"", "\\\"",$source_value) . "\"$suffix"
         );
     }
 
@@ -333,9 +339,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                 $key = is_numeric($source_column) ? $source_column - 1 : $source_column;
 
                 if (array_key_exists($key, $record)) {
-                    // if (!empty($record[$source_column])) {  // empty() is not a good idea: empty(0) == TRUE
                     if (!in_array($record[$key], $this->null_values)) {
-                        //$source_values[] = $record[$source_column];
                         $source_values[] = $this->getRecordValue($record, $source_column);
                     } else {
                         $source_values = array();
