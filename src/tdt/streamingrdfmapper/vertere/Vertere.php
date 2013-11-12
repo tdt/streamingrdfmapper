@@ -51,10 +51,10 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         }else{
             $this->base_uri = $base_uri_literal->getValue();
         }
-        
+
         // :null_values is a list of strings that indicate NULL in the source data
         $null_value_list = $this->mapping->getResource("<http://foo.bar#>", '<' . $this->ns["vertere"] . 'null_values>');
-        
+
         if ($null_value_list && $null_value_list instanceof \EasyRdf_Collection) { //!! If this rdf:List is not well built, this is going to give serious problems
             while($null_value_list->valid()){
                 array_push($this->null_values, $null_value_list->current()->getValue());
@@ -64,11 +64,12 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             array_push($this->null_values, "");
         }
     }
-       
+
     /**
      * Get a value from a record - This is needed to allow automatic trimming of the value and to lower the array number with 1, as vertere starts to count from 1
      */
     public function getRecordValue(&$record, $key) {
+
         //if the key doesn't exist in the record, lower the number with one and try again (we start counting from 1 in vertere)
         if (!array_key_exists($key, $record) && is_numeric($key) && array_key_exists($key -1, $record)){
             $key --;
@@ -105,7 +106,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         "predicate" => "<" . $this->ns["rdf"] . "type"  . ">",
                         "object" => "<" . $type->getUri()  . ">"
                     );
-                    
+
                 }
             }
         }
@@ -130,7 +131,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         $subject = $uris[$resource->getUri()];
         $property = $this->mapping->getResource($attribute, "<" . $this->ns["vertere"] . "property>");
         $language = $this->mapping->getLiteral($attribute, "<" . $this->ns["vertere"] . "language>");
-        
+
         if( $language){
             $language = $language->getValue(); //TODO: document this parameter?
         }
@@ -199,12 +200,12 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         if (isset($datatype)){
             $suffix = "^^<$datatype>";
         }
-        
+
         if (isset($language)){
             $suffix .= "@$language";
         }
-        
-        $suffix = 
+
+        $suffix =
         $graph[] = array(
             "subject" => "<" . $subject . ">",
             "predicate" => "<" . $property . ">",
@@ -234,12 +235,14 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         $new_subject = $this->mapping->getResource($relationship, "<" . $this->ns["vertere"] . "subject>");
 
         if ($object_from) {
-            //Prevents PHP warning on key not being present  
+            //Prevents PHP warning on key not being present
             if (isset($uris[$object_from->getUri()]))
                 $object = $uris[$object_from->getUri()];
         } else if ($identity) {
+
             $source_column = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column>");
-            $source_value = $this->getRecordValue($record, $source_column);
+            $column = $source_column->getValue();
+            $source_value = $this->getRecordValue($record, $column);
 
             if (empty($source_value)) {
                 return;
@@ -248,7 +251,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             //Check for lookups
             $lookup = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "lookup>");
             if ($lookup) {
-                $lookup_value = $this->lookup($record, $lookup->getValue(), $source_value);
+                $lookup_value = $this->lookup($record, $lookup->getUri(), $source_value);
                 if ($lookup_value != null && $lookup_value['type'] == 'uri') {
                     $uris[$resource->getUri()] = $lookup_value['value'];
                     return;
@@ -335,7 +338,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             foreach ($source_columns as $source_column) {
                 $source_column = $source_column['value'];
                 //$source_column--;
-                //Check if the decremented index exists before using its value 
+                //Check if the decremented index exists before using its value
                 $key = is_numeric($source_column) ? $source_column - 1 : $source_column;
 
                 if (array_key_exists($key, $record)) {
@@ -398,7 +401,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $container .= '/';
         }
 
-        //Prevents PHP warning on key not being present  
+        //Prevents PHP warning on key not being present
         if (!isset($source_value))
             $source_value = null;
 
@@ -426,7 +429,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                     $process_steps_list->next();
                 }
             }
-            
+
             foreach ($process_steps as $step) {
                 $function = str_replace($this->ns["vertere"], "", $step->getUri());
                 switch ($function) {
@@ -467,8 +470,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         break;
 
                         /**
-                         * create_url wil check whether the argument is not a url yet. 
-                         * If it is, it will keep the url as is. 
+                         * create_url wil check whether the argument is not a url yet.
+                         * If it is, it will keep the url as is.
                          * If it isn't, it will prepend the begining of the url, and it will url encode the value
                          */
                     case 'create_url':
@@ -522,7 +525,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         return $value;
     }
 
-    public function lookup( &$record, &$lookup, &$key) {
+    public function lookup( &$record, $lookup, &$key) {
         //TODO: convert this to $this->mapping
         if ($this->mapping->getLiteral($lookup, "<" . $this->ns["vertere"] . "lookup_entry>")) {
             return $this->lookup_config_entries($record, $lookup, $key);
@@ -558,9 +561,9 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                         $this->lookups[$lookup][$lookup_key]['value'] = $lookup_values[0];
                         $this->lookups[$lookup][$lookup_key]['type'] = false;
                     }
-                } 
+                }
             }
-        }        
+        }
 
 
         if (isset($this->lookups[$lookup]) && isset($this->lookups[$lookup][$key])) {
