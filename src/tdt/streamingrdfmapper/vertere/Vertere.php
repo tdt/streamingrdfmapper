@@ -336,7 +336,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $source_values = array();
 
             foreach ($source_columns as $source_column) {
-                $source_column = $source_column['value'];
+                $source_column = $source_column->getValue();//$source_column['value'];
+
                 //$source_column--;
                 //Check if the decremented index exists before using its value
                 $key = is_numeric($source_column) ? $source_column - 1 : $source_column;
