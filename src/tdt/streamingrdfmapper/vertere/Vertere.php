@@ -74,7 +74,9 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         if (!array_key_exists($key, $record) && is_numeric($key) && array_key_exists($key -1, $record)){
             $key --;
         } else if (!array_key_exists($key, $record)){
-            throw new Exception("Source column value is not valid: the value '$key' could not be found");
+            // Be forgiving! 
+            // throw new Exception("Source column value is not valid: the value '$key' could not be found");
+            return "";
         }
 
         return trim($record[$key]);
@@ -85,11 +87,16 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
      */
     public function map(&$chunk){
         //builds all the uris that can be built for this record according to the mapping file
+        echo "map\n";
         $uris = $this->createUris($chunk);
+        echo "uris\n";
         $graph = array();
         $this->addDefaultTypes($graph, $uris);
+        print "default types";
         $this->createRelationships($graph, $uris, $chunk);
+        print "releationships";
         $this->createAttributes($graph, $uris, $chunk);
+        print "attributes";
         return $graph;
     }
 
@@ -315,47 +322,53 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         //support for multiple source columns
         $source_columns = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "source_columns>");
         $source_resource = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "source_resource>");
+
         //Support for URI templates
         $template = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "template>");
         if($template){
             $template = $template->getValue();
-            //Retrieve all declared variables and expand template
-            //For now, only an unprocessed single column value is supported as a template variable
-            //Future: support source_columns, source_resource, lookup and process as well => refactor whole method
-
-            //TODO: refactor this!
-            $vars = $this->spec->get_resource_triple_values($identity, "<" . $this->ns["vertere"] . "template_vars>");
+            $varsList = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "template_vars>");
+            $vars = array();
+            if ($varsList && $varsList instanceof \EasyRdf_Collection) {
+                while($varsList->valid()){
+                    array_push($vars, $varsList->current()->getValue());
+                    $varsList->next();
+                }
+            }
             $uri = $this->create_template_uri($record, $template, $vars);
             $uris[$resource] = $uri;
             return;
         } else if ($source_column) {
             $source_value = $this->getRecordValue($record, $source_column->getValue());
         } else if ($source_columns) {
-            //TODO: refactor this towards an rdf list
             $glue = $this->mapping->getLiteral($identity, "<" . $this->ns["vertere"] . "source_column_glue>");
             $source_values = array();
+            
+            if($source_columns && $source_columns instanceof \EasyRdf_Collection) {
+                
+                while($source_columns->valid()){
+                    $source_column = $source_columns->current();
 
-            foreach ($source_columns as $source_column) {
-                $source_column = $source_column->getValue();//$source_column['value'];
+                    $source_column = $source_column->getValue();
+                    $key = is_numeric($source_column) ? $source_column - 1 : $source_column;
 
-                //$source_column--;
-                //Check if the decremented index exists before using its value
-                $key = is_numeric($source_column) ? $source_column - 1 : $source_column;
-
-                if (array_key_exists($key, $record)) {
-                    if (!in_array($record[$key], $this->null_values)) {
-                        $source_values[] = $this->getRecordValue($record, $source_column);
-                    } else {
-                        $source_values = array();
-                        break;
+                    if (array_key_exists($key, $record)) {
+                        if (!in_array($record[$key], $this->null_values)) {
+                            $source_values[] = $this->getRecordValue($record, $source_column);
+                        } else {
+                            $source_values = array();
+                            break;
+                        }
                     }
+                    $source_columns->next();
                 }
             }
-
+            
             $source_value = implode('', $source_values);
             if (!empty($source_value)) {
                 $source_value = implode($glue, $source_values);
             }
+            
         } else if ($source_resource) {
             if (!isset($uris[$source_resource->getUri()])) {
                 $this->createUri($record, $uris, $source_resource->getUri());
@@ -424,7 +437,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         if ($processes != null) {
             $process_steps_list = $processes;
             $process_steps = array();
-            if ($process_steps_list && $process_steps_list instanceof \EasyRdf_Collection) { //!! If this rdf:List is not well built, this is going to give serious problems
+            if ($process_steps_list && $process_steps_list instanceof \EasyRdf_Collection) {
                 while($process_steps_list->valid()){
                     array_push($process_steps, $process_steps_list->current());
                     $process_steps_list->next();
@@ -527,7 +540,6 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
     }
 
     public function lookup( &$record, $lookup, &$key) {
-        //TODO: convert this to $this->mapping
         if ($this->mapping->getLiteral($lookup, "<" . $this->ns["vertere"] . "lookup_entry>")) {
             return $this->lookup_config_entries($record, $lookup, $key);
         } else if ($this->mapping->getLiteral($lookup, "<" . $this->ns["vertere"] . "lookup_csv_file>")) {
@@ -537,29 +549,30 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
 
     function lookup_config_entries(&$record, &$lookup, &$key) {
         if (!isset($this->lookups[$lookup])) {
-            $entries = $this->spec->get_subject_property_values($lookup, "<" . $this->ns["vertere"] . "lookup_entry>");
+            $entries = $this->mapping->allResources($lookup, "<" . $this->ns["vertere"] . "lookup_entry>");
             if (empty($entries)) {
                 throw new Exception("Lookup ${lookup} had no lookup entries");
             }
             foreach ($entries as $entry) {
+                $entry = $entry->getUri();
                 //Accept lookups with several keys mapped to a single value
-                $lookup_keys = $this->spec->get_subject_property_values($entry['value'], "<" . $this->ns["vertere"] . "lookup_key>");
-                $lookup_column = $this->spec->get_subject_property_values($entry['value'], "<" . $this->ns["vertere"] . "lookup_column>");
+                $lookup_keys = $this->mapping->allLiterals($entry, "<" . $this->ns["vertere"] . "lookup_key>");
+                $lookup_column = $this->mapping->getLiteral($entry, "<" . $this->ns["vertere"] . "lookup_column>");
                 foreach ($lookup_keys as $lookup_key_array) {
-                    $lookup_key = $lookup_key_array['value'];
+                    $lookup_key = $lookup_key_array->getValue();
                     if (isset($this->lookups[$lookup][$lookup_key])) {
                         throw new Exception("Lookup <${lookup}> contained a duplicate key");
                     }
-                    $lookup_values = $this->spec->get_subject_property_values($entry['value'], "<" . $this->ns["vertere"] . "lookup_value>");
+                    $lookup_values = $this->mapping->allLiterals($entry, "<" . $this->ns["vertere"] . "lookup_value>");
                     if (count($lookup_values) > 1) {
                         throw new Exception("Lookup ${lookup} has an entry ${entry['value']} that does not have exactly one lookup value assigned.");
                     }
                     if ($lookup_column){
-                        $this->lookups[$lookup][$lookup_key]['value'] = $lookup_column[0]['value'];
+                        $this->lookups[$lookup][$lookup_key]['value'] = $lookup_column[0]->getValue();
                         $this->lookups[$lookup][$lookup_key]['type'] = true;
                     }
                     elseif ($lookup_values[0]){
-                        $this->lookups[$lookup][$lookup_key]['value'] = $lookup_values[0];
+                        $this->lookups[$lookup][$lookup_key]['value'] = $lookup_values[0]->getValue();
                         $this->lookups[$lookup][$lookup_key]['type'] = false;
                     }
                 }

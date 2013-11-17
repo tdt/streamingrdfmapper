@@ -47,7 +47,7 @@ include_once("../vendor/autoload.php");
    ]
 .','Vertere');
 
-$triples = $mapper->map(array("id" => "5", "name" => "test123", "park" => "Citadel"), true)->serialise("turtle");
+$triples = $mapper->map(array("id" => "5", "name" => " ", "park" => "Citadel"), true)->serialise("turtle");
 print $triples;
     
 //}

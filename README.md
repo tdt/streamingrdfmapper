@@ -6,19 +6,13 @@ This library maps PHP arrays towards RDF using different mapping languages:
 
 The Vertere mapping language was the start of this repository. The code was reused from [mmmmmrob](https://github.com/mmmmmrob/Vertere).
 
-You can find more documentation about Vertere in the [VERTERE.md](VERTERE.md) file.
+You can find more documentation about Vertere in the [VERTERE.md](VERTERE.md) file. It is at this moment the only supported language.
 
 ## RML
 
-See the publication of Anastasia Dimou, Miel Vander Sande, Pieter Colpaert on RML at ISWC 2013
+Will be the future language of this repository. See the publication of Anastasia Dimou, Miel Vander Sande, Pieter Colpaert on RML at ISWC 2013
 
 You can find more documentation about Vertere in the [RML.md](RML.md) file.
-
-## One on One
-
-Map a column to properties: this is a very easy mapping language which doesn't offer a lot of flexibility
-
-You can find more documentation about Vertere in the [ONEONONE.md](ONEONONE.md) file.
 
 # Usage
 
@@ -36,7 +30,7 @@ Not familiar with composer? Read about it [here](http://getcomposer.org)
 
 ```php
 $mapping = file_get_contents("http://foo.bar/mapping/file.ttl");
-$typeofmapping = "Vertere"; //other options: "RML", "OneonOne"
+$typeofmapping = "Vertere";
 $mapper = new StreamingRDFMapper($mapping, $typeofmapping);
 $data = foo\bar\getNextDataChunk(); //get data from somewhere: can be a csv file you've extracted, some data you've scraped or XML or JSON file you've flattened and put into an array
 $getEasyRDFGraph = true;

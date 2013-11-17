@@ -1,0 +1,116 @@
+@prefix : <http://vocab.mmlab.be/vertere/terms#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix schema: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix transit: <http://vocab.org/transit/terms/> .
+@prefix wt: <http://westtoer.be/voc/> .
+@prefix virtrdf: <http://www.openlinksw.com/schemas/virtrdf#> .
+@prefix gnd: <http://d-nb.info/standards/elementset/gnd#>.
+@prefix exif: <http://www.w3.org/2003/12/exif/ns#>.
+
+<#> a :Spec
+; :base_uri "http://example.com/foo/bar#"
+; :resource <#Event>, <#Contact_Point>, <#Media>, <#Calendar>, <#Address>
+.
+
+<#Event> a :Resource
+; :type schema:Event
+; :identity [
+    :source_column "event_attr_cdbid"
+    ]
+
+; :attribute
+    [ :property dc:identifier; :source_column "event_attr_cdbid" ],
+    [ :property schema:name; :source_column "event_eventdetails_eventdetail_title" ],
+    [ :property schema:performer; :source_column "event_eventdetails_eventdetail_performers_performer_label" ],
+    [ :property gnd:organizerOrHost; :source_column "event_organiser_label" ],
+    [ :property schema:description;      :source_column "event_eventdetails_eventdetail_longdescription" ;    :language "nl" ],
+    [ :property wt:short_description;      :source_column "event_eventdetails_eventdetail_shortdescription" ;    :language "nl" ],
+    [ :property wt:category;      :source_column "event_categories_category" ],
+    [ :property wt:category_type;      :source_column "event_categories_category_attr_type" ],
+    [ :property wt:catid;      :source_column "event_categories_category_attr_catid" ],
+    
+    [ :property wt:calendar_summary;      :source_column "event_eventdetails_eventdetail_calendarsummary" ],
+    [ :property schema:price;         :source_column "event_eventdetails_eventdetail_price_pricevalue" ],
+    [ :property schema:keywords; :source_column "event_keywords" ],
+    [ :property schema:inLanguage; :source_column "event_languages_language" ],
+    
+    [ :property schema:startDate;	:source_column "event_calendar_periods_period_datefrom";	:datatype xsd:date ],
+    [ :property schema:endDate;          :source_column "event_calendar_periods_period_dateto"; 	:datatype xsd:date ],
+    [ :property wt:open_monday;          :source_column "event_calendar_periods_period_weekscheme_monday_attr_opentype";  		:lookup <#boolean_lookup>; :datatype xsd:boolean ],
+    [ :property wt:open_tuesday;          :source_column "event_calendar_periods_period_weekscheme_tuesday_attr_opentype";  		:lookup <#boolean_lookup>; :datatype xsd:boolean ],
+    [ :property wt:open_wednesday;          :source_column "event_calendar_periods_period_weekscheme_wednesday_attr_opentype";  	:lookup <#boolean_lookup>; :datatype xsd:boolean ],
+    [ :property wt:open_thursday;          :source_column "event_calendar_periods_period_weekscheme_thursday_attr_opentype";  		:lookup <#boolean_lookup>; :datatype xsd:boolean ],
+    [ :property wt:open_friday;          :source_column "event_calendar_periods_period_weekscheme_friday_attr_opentype";  		:lookup <#boolean_lookup>; :datatype xsd:boolean ],
+    [ :property wt:open_saturday;          :source_column "event_calendar_periods_period_weekscheme_saturday_attr_opentype";  		:lookup <#boolean_lookup>; :datatype xsd:boolean ],
+    [ :property wt:open_sunday;          :source_column "event_calendar_periods_period_weekscheme_sunday_attr_opentype";  		:lookup <#boolean_lookup>; :datatype xsd:boolean ]
+    
+; :relationship
+    [ :property schema:image; :object_from <#Media> ],
+    [ :property schema:contactPoint; :object_from <#Contact_Point> ],
+    [ :property schema:location; :object_from <#Address> ]    											  
+.    											
+
+<#Contact_Point> a :Resource
+; :type foaf:Agent
+; :identity [
+    :source_column "event_eventdetails_eventdetail_title" ;
+    :process ( :normalise );
+    :base_uri "http://example.com/foo/bar#resource/contact_point/"
+    ]
+; :attribute
+    [ :property schema:email; :source_column "event_contactinfo_mail" ],
+    [ :property schema:telephone; :source_column "event_contactinfo_phone" ],
+    [ :property wt:reservation; :source_column "event_contactinfo_phone_attr_reservation"; :datatype xsd:boolean ]
+.
+
+
+<#Address> a :Resource
+; :type schema:PostalAddress
+; :identity [
+    :source_columns ( "event_contactinfo_address_physical_gis_ycoordinate" "event_contactinfo_address_physical_gis_xcoordinate") ;
+    :source_column_glue "," ;
+    :base_uri "http://example.com/foo/bar#resource/location/"
+    ]
+    
+; :attribute
+    [ :property schema:streetAddress; :source_column "event_contactinfo_address_physical_street" ],
+    [ :property schema:postalCode; :source_column "event_contactinfo_address_physical_zipcode" ],
+    [ :property schema:addressLocality; :source_column "event_contactinfo_address_physical_city" ],
+    [ :property schema:addressCountry; :source_column "event_contactinfo_address_physical_country" ],
+    [ :property wgs84_pos:lat; :source_column "event_contactinfo_address_physical_gis_xcoordinate"; :datatype xsd:float ],
+    [ :property wgs84_pos:lon; :source_column "event_contactinfo_address_physical_gis_ycoordinate"; :datatype xsd:float ],
+    [ :property wt:label; :source_column "event_location_label" ] 
+.
+
+
+<#Media> a :Resource
+; :type schema:ImageObject
+; :identity [
+    :source_column "event_eventdetails_eventdetail_media_file_hlink" ;
+    :base_uri ""
+    ]
+; :attribute
+    [ :property wt:mediatype; :source_column "event_eventdetails_eventdetail_media_file_mediatype" ],
+    [ :property exif:copyright; :source_column "event_eventdetails_eventdetail_media_file_copyright" ]
+.
+
+
+
+<#boolean_lookup> a :Lookup;
+  :lookup_entry [ 
+    :lookup_key "True", "1", "open"; 
+    :lookup_value "true"
+  ] ;
+  :lookup_entry [ 
+    :lookup_key "False", "0", "close"; 
+    :lookup_value "false"
+  ] .
+
+
+
