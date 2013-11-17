@@ -87,16 +87,16 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
      */
     public function map(&$chunk){
         //builds all the uris that can be built for this record according to the mapping file
-        echo "map\n";
+
         $uris = $this->createUris($chunk);
-        echo "uris\n";
+
         $graph = array();
         $this->addDefaultTypes($graph, $uris);
-        print "default types";
+
         $this->createRelationships($graph, $uris, $chunk);
-        print "releationships";
+
         $this->createAttributes($graph, $uris, $chunk);
-        print "attributes";
+
         return $graph;
     }
 

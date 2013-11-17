@@ -31,7 +31,6 @@ try{
         foreach($triples as $triple) {
             print join(" ",$triple) . " . \n";
         }
-        
     }
     $xmlr->close();
 }
