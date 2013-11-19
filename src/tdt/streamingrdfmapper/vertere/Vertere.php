@@ -442,6 +442,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                     array_push($process_steps, $process_steps_list->current());
                     $process_steps_list->next();
                 }
+                $process_steps_list->rewind();
             }
 
             foreach ($process_steps as $step) {
