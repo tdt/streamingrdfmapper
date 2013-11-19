@@ -41,13 +41,13 @@ abstract class AMapper{
         $ntriples = "";
         foreach($triples as $triple){
 
-            $ntriple = implode(" ",$triple) . ".";
+            $ntriple = implode(" ",$triple) . " .";
 
             // No newlines nor carriage returns are allowed in a literal (http://www.w3.org/TR/n-triples/#grammar-production-STRING_LITERAL_QUOTE)
             $ntriple = str_replace("\n", '\n', $ntriple);
             $ntriple = str_replace("\r\n", '\n', $ntriple);
 
-            $ntriples .= $ntriple;
+            $ntriples .= $ntriple . "\n";
         }
         
         $parser->parse($graph, $ntriples, "ntriples", "");
