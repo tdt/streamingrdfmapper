@@ -183,8 +183,8 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         }
         $lookup = $this->mapping->getResource($attribute, "<" . $this->ns["vertere"] . "lookup>");
         if ($lookup != null) {
-            $lookup_value = $this->lookup($record, $lookup, $source_value);
-
+            $lookup_value = $this->escapeBackslashes($this->lookup($record, $lookup, $source_value));
+            
             if ($lookup_value != null && $lookup_value['type'] == 'uri') {
                 $graph[] = array(
                     "subject" => "<" . $subject . ">",
@@ -211,13 +211,18 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
         if (isset($language)){
             $suffix .= "@$language";
         }
+        
+        $source_value = $this->escapeBackslashes($source_value);
 
-        $suffix =
         $graph[] = array(
             "subject" => "<" . $subject . ">",
             "predicate" => "<" . $property . ">",
             "object" => "\"" . str_replace("\"", "\\\"",$source_value) . "\"$suffix"
         );
+    }
+
+    private function escapeBackslashes($str) {
+         return preg_replace('/\\\\([^uUtnr"\\\\])/','\\\\\\\\$1', $str);
     }
 
     private function createRelationships(&$graph, &$uris, &$record) {
