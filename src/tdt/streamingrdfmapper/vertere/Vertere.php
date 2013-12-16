@@ -362,6 +362,7 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                             $source_values[] = $this->getRecordValue($record, $source_column);
                         } else {
                             $source_values = array();
+                            echo "streamingrdfmapper: WARNING: skipping chunk because of empty source_columns\n";
                             break;
                         }
                     }
