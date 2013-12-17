@@ -369,6 +369,10 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
                     $source_columns->next();
                 }
             }
+            	
+            	
+            // Rewind the collection.
+            $source_columns->rewind();
             
             $source_value = implode('', $source_values);
             if (!empty($source_value)) {
