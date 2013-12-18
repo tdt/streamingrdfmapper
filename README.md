@@ -49,7 +49,7 @@ foreach($triplesArray as $triple){
 You can also set a standard base uri for the mapper by after creating an instance doing this:
 
 ```php
-$mapper->setBaserUri("http://data.iRail.be/");
+$mapper->setBaseUri("http://data.iRail.be/");
 ```
 * The EasyRDF library 
 
