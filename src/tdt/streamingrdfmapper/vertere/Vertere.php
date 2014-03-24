@@ -282,11 +282,15 @@ class Vertere extends \tdt\streamingrdfmapper\AMapper {
             $lookup = $this->mapping->getResource($identity, "<" . $this->ns["vertere"] . "lookup>");
             if ($lookup) {
                 $lookup_value = $this->lookup($record, $lookup->getUri(), $source_value);
-                if ($lookup_value != null && $lookup_value['type'] == 'uri') {
+                if ($lookup_value != null && @$lookup_value['type'] == 'uri') {
                     $uris[$resource->getUri()] = $lookup_value['value'];
                     return;
                 } else {
-                    $source_value = $lookup_value['value'];
+                    if (is_array($lookup_value)) {
+                        $source_value = $lookup_value['value'];
+                    } else {
+                        $source_value = $lookup_value;
+                    }
                 }
             }
 
