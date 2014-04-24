@@ -12,7 +12,7 @@
 	"guzzle/guzzle": "~3.7",
         "easyrdf/easyrdf": "*"
     },
-    "minimum-stability" : "dev",
+    "minimum-stability" : "stable",
     "autoload": {
         "psr-0": {
             "tdt\\streamingrdfmapper\\": "src/"
