@@ -7,8 +7,14 @@
     "license": "AGPLv3",
     "suggest": {
     },
+    "repositories" : [
+        {
+            "type":"vcs",
+            "url" : "https://github.com/coreation/arc2"
+        }
+    ],
     "require": {
-	"semsol/arc2" : ">=2.2.3",
+	"coreation/arc2" : "dev-master",
 	"guzzle/guzzle": "~3.7",
         "easyrdf/easyrdf": "dev-devel"
     },
