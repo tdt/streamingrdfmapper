@@ -14,7 +14,7 @@
         }
     ],
     "require": {
-	"coreation/arc2" : "dev-master",
+	"semsol/arc2" : "dev-master",
 	"guzzle/guzzle": "~3.7",
         "easyrdf/easyrdf": "dev-devel"
     },
