@@ -16,7 +16,7 @@
     "require": {
 	"coreation/arc2" : "dev-master",
 	"guzzle/guzzle": "~3.7",
-        "easyrdf/easyrdf": "dev-devel"
+        "easyrdf/easyrdf": "0.9.0"
     },
     "minimum-stability" : "stable",
     "autoload": {
